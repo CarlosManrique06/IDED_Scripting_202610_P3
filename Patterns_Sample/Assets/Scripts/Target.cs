@@ -5,45 +5,47 @@ public class Target : MonoBehaviour, IFactoryProduct
 {
     private const float TIME_TO_DESTROY = 10F;
 
-    [SerializeField]
-    private int maxHP = 1;
-
+    [SerializeField] private int maxHP = 1;
     private int currentHP;
 
-    [SerializeField]
-    private int scoreAdd = 10;
+    [SerializeField] private int scoreAdd = 10;
 
     public delegate void OnTargetDestroyed(int scoreAdd);
-
     public static event OnTargetDestroyed onTargetDestroyed;
 
-    private void Start()
+    public void ResetTarget()
     {
         currentHP = maxHP;
-        Destroy(gameObject, TIME_TO_DESTROY);
+        CancelInvoke(nameof(ReturnToPool));
+        Invoke(nameof(ReturnToPool), TIME_TO_DESTROY);
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        int collidedObjectLayer = collision.gameObject.layer;
+        int layer = collision.gameObject.layer;
 
-        if (collidedObjectLayer.Equals(Utils.BulletLayer))
+        if (layer.Equals(Utils.BulletLayer))
         {
             Pool.Instance.ReturnBullet(collision.gameObject.GetComponent<Bullet>());
-
             currentHP -= 1;
 
             if (currentHP <= 0)
             {
                 onTargetDestroyed?.Invoke(scoreAdd);
-                Destroy(gameObject);
+                ReturnToPool();
             }
         }
-        else if (collidedObjectLayer.Equals(Utils.PlayerLayer) ||
-            collidedObjectLayer.Equals(Utils.KillVolumeLayer))
+        else if (layer.Equals(Utils.PlayerLayer) ||
+                 layer.Equals(Utils.KillVolumeLayer))
         {
             Player.Instance.OnPlayerHit?.Invoke();
-            Destroy(gameObject);
+            ReturnToPool();
         }
+    }
+
+    private void ReturnToPool()
+    {
+        CancelInvoke(nameof(ReturnToPool));
+        TargetFacade.Instance.ReturnTarget(this);
     }
 }

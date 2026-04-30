@@ -2,39 +2,31 @@
 
 public class SpawnController : MonoBehaviour
 {
-    [SerializeField]
-    private float spawnRate = 1f;
+    [SerializeField] private float spawnRate = 1f;
+    [SerializeField] private float firstSpawnDelay = 0f;
 
-    [SerializeField]
-    private float firstSpawnDelay = 0f;
-
-    private Vector3 spawnPoint;
-
-    // Start is called before the first frame update
     private void Start()
     {
-        if (TargetFactory.Instance != null)
+        if (TargetFacade.Instance != null)
         {
-            InvokeRepeating("SpawnObject", firstSpawnDelay, spawnRate);
+            InvokeRepeating(nameof(SpawnObject), firstSpawnDelay, spawnRate);
 
             if (Player.Instance != null)
-            {
                 Player.Instance.OnPlayerDied += StopSpawning;
-            }
         }
     }
 
     private void SpawnObject()
     {
-        GameObject spawnGO = TargetFactory.Instance.CreateInstance().gameObject;
+        Target target = TargetFacade.Instance.GetTarget();
 
-        if (spawnGO != null)
+        if (target != null)
         {
-            spawnPoint = Camera.main.ViewportToWorldPoint(new Vector3(
+            Vector3 spawnPoint = Camera.main.ViewportToWorldPoint(new Vector3(
                 Random.Range(0F, 1F), 1F, transform.position.z));
 
-            spawnGO.transform.position = spawnPoint;
-            spawnGO.transform.rotation = Quaternion.identity;
+            target.transform.position = spawnPoint;
+            target.transform.rotation = Quaternion.identity;
         }
     }
 
