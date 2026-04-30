@@ -6,6 +6,7 @@ public class Target : MonoBehaviour, IFactoryProduct
     private const float TIME_TO_DESTROY = 10F;
 
     [SerializeField] private int maxHP = 1;
+
     private int currentHP;
 
     [SerializeField] private int scoreAdd = 10;
